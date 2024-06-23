@@ -5,6 +5,7 @@ from PyPDF2 import PdfReader
 from docx.document import Document
 import numpy as np
 from transformers import AutoTokenizer, AutoModel
+from sklearn.decomposition import PCA
 
 import matplotlib.pyplot as plt
 
@@ -48,12 +49,14 @@ def get_embedded_vector(file_path):# -> ndarray:
     return embedded_vector
 
 def plot_2d_graph(vectors):
-    # Perform 2D approximation of the vectors
-    approximated_vectors = None  # Replace with your code to perform the approximation
+    # Perform dimensionality reduction using PCA
+    pca = PCA(n_components=2)
+    reduced_vectors = pca.fit_transform(vectors)
 
-    # Plot the approximated vectors
-    x = approximated_vectors[:, 0]
-    y = approximated_vectors[:, 1]
+    # Extract x and y coordinates from reduced vectors
+    x = reduced_vectors[:, 0]
+    y = reduced_vectors[:, 1]
+
     plt.scatter(x, y)
     plt.show()
 
