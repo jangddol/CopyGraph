@@ -2,7 +2,6 @@ import os
 import torch
 from docx import Document
 from PyPDF2 import PdfReader
-from docx.document import Document
 import numpy as np
 from transformers import AutoTokenizer, AutoModel
 from sklearn.decomposition import PCA
