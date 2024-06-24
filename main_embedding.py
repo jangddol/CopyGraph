@@ -1,14 +1,10 @@
+# -*- coding: utf-8 -*-
 import torch
 from transformers import AutoTokenizer, AutoModel
-from sklearn.decomposition import PCA
-# -*- coding: utf-8 -*-
-import matplotlib.pyplot as plt
+import numpy as np
 
-# 한글 폰트 설정
-plt.rcParams['font.family'] = 'Malgun Gothic'
-plt.rcParams['axes.unicode_minus'] = False
-
-from get_file import get_file_paths, get_authors, get_file_texts
+from similarity import make_nonlinear_similarity, plot_2d_graph
+from get_file import get_file_dict
 
 
 def get_embedded_vector_from_text(text):# -> ndarray:
@@ -29,41 +25,29 @@ def get_embedded_vector_from_text(text):# -> ndarray:
     return reshaped_embeddings
 
 
-def get_embedded_vector(texts):# -> ndarray:
+def get_embedded_vector(texts):
     return [get_embedded_vector_from_text(text) for text in texts]
 
 
-def plot_2d_graph(vectors, authors):
-    # Perform dimensionality reduction using PCA
-    pca = PCA(n_components=2)
-    reduced_vectors = pca.fit_transform(vectors)
+def cosine_similarity(vector1: list, vector2: list):
+    dot_product = sum([a*b for a, b in zip(vector1, vector2)])
+    magnitude1 = sum([a**2 for a in vector1]) ** 0.5
+    magnitude2 = sum([a**2 for a in vector2]) ** 0.5
+    return dot_product / (magnitude1 * magnitude2)
 
-    # Extract x and y coordinates from reduced vectors
-    x = reduced_vectors[:, 0]
-    y = reduced_vectors[:, 1]
 
-    # 산점도 그리기
-    fig, ax = plt.subplots()
-    scatter = ax.scatter(x, y)
-
-    # 각 점 위에 이름 표시
-    for i, txt in enumerate(authors):
-        ax.annotate(txt, (x[i], y[i]), textcoords="offset points", xytext=(0,10), ha='center')
-
-    plt.show()
+def nonlinear_edge_weight(x : float):
+    return 1 / (1 + np.exp(-12*(x-0.5)))
 
 
 if __name__ == '__main__':
-    folder_path = 'D:\\Coding\\CopyGraph\\files'  # Replace with the path to your specific folder
-    file_paths = get_file_paths(folder_path)
-    texts = get_file_texts(file_paths)
-    # file들은 보고서이며, 보고서의 제출자를 알아내는 함수를 불러와 제출자 리스트를 만듦
-    authors: list = get_authors(file_paths)
+    folder_path = 'D:\\Coding\\CopyGraph\\files\\FinalTuring'  # Replace with the path to your specific folder
+    file_dict = get_file_dict(folder_path)
+    authors = list(file_dict.keys())
+    texts = list(file_dict.values())
 
-    embedded_vectors = []
-    for file_path in file_paths:
-        embedded_vector = get_embedded_vector(texts)
-        if embedded_vector is not None:
-            embedded_vectors.append(embedded_vector)
+    embedded_vectors = get_embedded_vector(texts)
 
-    plot_2d_graph(embedded_vectors, authors)
+    similarity_matrix = make_nonlinear_similarity(embedded_vectors, cosine_similarity, nonlinear_edge_weight)
+
+    plot_2d_graph(similarity_matrix, authors)
