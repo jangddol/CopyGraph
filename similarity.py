@@ -1,3 +1,4 @@
+from typing import Any
 import networkx as nx
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
@@ -7,19 +8,19 @@ font_name = fm.FontProperties(fname="c:/Windows/Fonts/malgun.ttf").get_name()
 rc('font', family=font_name)
 
 
-def make_nonlinear_similarity(texts: list, similarity_func: callable, nonlinear_weight_func: callable):
+def make_nonlinear_similarity(texts: list, similarity_func: callable[[Any, Any], float], nonlinear_weight_func: callable[float, float]) -> list[list[float]]:
     # 문서 간 자카드 유사도 계산
-    similarity_matrix = [[similarity_func(text1, text2) for text2 in texts] for text1 in texts]
+    similarity_matrix: list[list[float]] = [[similarity_func(text1, text2) for text2 in texts] for text1 in texts]
 
     # 유사도 노말라이즈
-    max_similarity = max([max(similarities) for similarities in similarity_matrix])
-    min_similarity = min([min(similarities) for similarities in similarity_matrix])
+    max_similarity: float = max([max(similarities) for similarities in similarity_matrix])
+    min_similarity: float = min([min(similarities) for similarities in similarity_matrix])
     similarity_matrix = [[(similarity - min_similarity) / (max_similarity - min_similarity) for similarity in similarities] for similarities in similarity_matrix]
     similarity_matrix = [[nonlinear_weight_func(similarity) for similarity in similarities] for similarities in similarity_matrix]
     return similarity_matrix
 
 
-def plot_2d_graph(similarity_matrix: list[list[float]], authors: list):
+def plot_2d_graph(similarity_matrix: list[list[float]], authors: list) -> None:
     # 네트워크 그래프 생성
     G = nx.Graph()
     G.add_nodes_from(range(len(authors)))
