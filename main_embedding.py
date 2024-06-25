@@ -18,30 +18,30 @@ def get_embedded_vector_from_text(text):# -> ndarray:
 
     # Get the embeddings from the model
     with torch.no_grad():
-        embeddings = model(tokens)[0].squeeze(0).numpy()
+        embeddings = model(tokens)[0].squeeze(0)
 
-    # reshape embeddings to a long 1 dimensional array
-    reshaped_embeddings = embeddings.reshape(-1)
-    return reshaped_embeddings
+    # Calculate the average embedding vector
+    avg_embedding = torch.mean(embeddings, dim=0)
+
+    return avg_embedding.numpy()
 
 
-def get_embedded_vector(texts):
+def get_embedded_vector(texts):# -> list[ndarray]:
     return [get_embedded_vector_from_text(text) for text in texts]
 
 
-def cosine_similarity(vector1: list, vector2: list):
-    dot_product = sum([a*b for a, b in zip(vector1, vector2)])
-    magnitude1 = sum([a**2 for a in vector1]) ** 0.5
-    magnitude2 = sum([a**2 for a in vector2]) ** 0.5
-    return dot_product / (magnitude1 * magnitude2)
+def cosine_similarity(vector1, vector2):
+    # vectors a 1dim ndarray
+    return np.dot(vector1, vector2) / (np.linalg.norm(vector1) * np.linalg.norm(vector2))
 
 
 def nonlinear_edge_weight(x : float):
-    return 1 / (1 + np.exp(-12*(x-0.5)))
+    # return 1 / (1 + np.exp(-0.5*(x-0.5)))
+    return pow(x, 9)
 
 
 if __name__ == '__main__':
-    folder_path = 'D:\\Coding\\CopyGraph\\files\\FinalTuring'  # Replace with the path to your specific folder
+    folder_path = 'D:\\Coding\\CopyGraph\\files\\Lab3'  # Replace with the path to your specific folder
     file_dict = get_file_dict(folder_path)
     authors = list(file_dict.keys())
     texts = list(file_dict.values())
